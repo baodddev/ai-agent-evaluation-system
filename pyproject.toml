@@ -1,0 +1,27 @@
+[project]
+name = "ai-agent-evaluation-system"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "DuyBao", email = "24520146@gm.uit.edu.vn" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "dotenv>=0.9.9",
+    "langchain>=1.4.7",
+    "langchain-openai>=1.7.3",
+    "pydantic>=2.14.2",
+]
+
+[project.scripts]
+ai-agent-evaluation-system = "ai_agent_evaluation_system:main"
+
+[build-system]
+requires = ["uv_build>=0.12.11,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.4.0",
+]
