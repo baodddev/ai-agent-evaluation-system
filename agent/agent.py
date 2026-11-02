@@ -1,6 +1,6 @@
 from models import model
 from tools import calculate_right_refund
-from tools import issue_refund_ticket,get_user_purchase_history
+from tools import issue_refund_ticket,get_user_purchase_history,refunded_items
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from prompts import agent_system_prompt
@@ -42,6 +42,21 @@ def run_conversation():
             question = HumanMessage(content=user_input)
 
     print("the job is done!")
+
+def run_scripted(turns: list[str]) -> dict:
+    """Run one eval case without input(): fresh thread, clean refund state.
+    Returns the final agent state: "messages" (full trajectory incl. tool calls) and
+    "structured_response". structured_response.conversation is still True if the turns
+    ran out before the agent reached a decision."""
+    # shortcut: fixed turns don't adapt to the agent's questions; switch to an LLM-simulated customer if cases misalign
+    assert turns, "a case needs at least one customer message"
+    refunded_items.clear()  # one case's refunds must not leak into the next
+    config = {"configurable": {"thread_id": str(uuid4())}}
+    for text in turns:
+        response = agent.invoke({"messages": [HumanMessage(content=text)]}, config=config)
+        if not response["structured_response"].conversation:
+            break
+    return response
 
 if __name__ == "__main__":
     run_conversation()
