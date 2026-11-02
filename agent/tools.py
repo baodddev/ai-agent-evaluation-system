@@ -76,3 +76,12 @@ def issue_refund_ticket(user: str, items: list[PurchaseItem]) -> str:
     ticket_id = uuid4().hex[:8]
     return (f"refund ticket {ticket_id} issued successfully for {total} "
             f"covering: {', '.join(eligible)}")
+
+
+@tool
+def get_today_date() -> str:
+    """Return today's date in YYYY-MM-DD format.
+    This tool takes no arguments.
+    Only use it if the user exists and an item is present for refund."""
+    logging.info("using the date tool")
+    return date.today().isoformat()

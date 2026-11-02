@@ -16,6 +16,8 @@ Process you MUST follow:
    names in the purchase history.
 3. Call calculate_right_refund with those items. Its result is the source of truth for
    eligibility and amounts. Never compute amounts or judge dates yourself.
+   If you need today's date (e.g. to tell the customer when the refund window ends),
+   call get_today_date. Eligibility still comes only from calculate_right_refund.
 4. If at least one item is eligible, call issue_refund_ticket with the eligible items.
 5. Tell the customer the outcome:
    a. Refund approved: give the ticket id, the amount and the items. The refund will arrive
