@@ -40,4 +40,24 @@ stub = StubAgent(finish_after=5)
 agent_module.agent = stub
 assert agent_module.run_scripted(["hi"])["structured_response"].conversation is True
 
+# looping agent: step limit ends the case as unfinished, keeping the trajectory instead of hanging
+from types import SimpleNamespace
+from langgraph.errors import GraphRecursionError
+
+
+class LoopingAgent:
+    def invoke(self, state, config):
+        assert config["recursion_limit"] == agent_module.MAX_STEPS_PER_TURN
+        raise GraphRecursionError("loop")
+
+    def get_state(self, config):
+        return SimpleNamespace(values={"messages": ["trajectory so far"]})
+
+
+agent_module.agent = LoopingAgent()
+state = agent_module.run_scripted(["I'm bob, refund my USB-C Hub"])
+assert state["structured_response"].conversation is True
+assert state["structured_response"].answer == agent_module.STEP_LIMIT_ANSWER
+assert state["messages"] == ["trajectory so far"]
+
 print("all harness checks passed")
