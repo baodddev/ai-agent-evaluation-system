@@ -12,16 +12,27 @@ expected outcome.
 
 | Metric | Script | Question it answers | Status |
 |---|---|---|---|
-| Answer correctness | `evaluations/answer_correctness.py` | Does the final answer reach the same conclusion as the expected answer? (GEval) | Ready, needs dataset |
-| Tool correctness | `evaluations/tool_correctness.py` | Did the agent call the expected tools? | Ready, needs dataset |
+| Answer correctness | `evaluations/answer_correctness.py` | Does the final answer reach the same conclusion as the expected answer? (GEval) | Working |
+| Tool correctness | `evaluations/tool_correctness.py` | Did the agent call the expected tools? | Working |
 | Argument correctness | `evaluations/argument_correctness.py` | Were the tools called with the right arguments? | In progress |
 | Plan quality | `evaluations/plan_quality.py` | Is the agent's plan sound for the task? | In progress |
 | Step efficiency | `evaluations/step_efficiency.py` | Did it avoid unnecessary steps? | In progress |
 | Task completion | `evaluations/task_completion.py` | Did it finish the task? | In progress |
 | Plan adherence | `evaluations/plan_adherence.py` | Did it follow its own plan? | Planned |
 
-Test cases (goldens) go in `evaluations/dataset.py`, and the judge model in `evaluations/model.py`.
-Both are still to be written, so no metric can run yet.
+`evaluations/eval_all.py` runs the agent **once** per test case and scores every working metric on
+that same run. Running each metric script separately re-runs the agent each time, which costs more
+and lets results drift between metrics.
+
+- **Test cases** (`evaluations/dataset.py`): the three alice / bob / carol cases below, each with an
+  expected answer and expected tools.
+- **Judge** (`evaluations/model.py`): `gemini-3.1-flash-lite`, a different model from the agent, so
+  the agent never grades itself.
+- **Step limit:** `run_scripted` stops a case after 20 graph steps (a normal case needs about 8).
+  A looping agent then fails that case instead of hanging the run and burning quota.
+
+Known gap: Tool correctness only checks that the expected tools were called. An agent that loops
+and calls them 10 times still scores 1.0, so that needs Step efficiency or exact-match mode.
 
 ## The agent under test
 
@@ -87,9 +98,13 @@ uv sync
 cp .env.exanple .env   # then set GEMINI_API_KEY
 ```
 
-The agent is pinned to `gemini-3.6-flash` (not a `-latest` alias), so results stay comparable
-between runs. On the Gemini free tier this model allows only about 20 requests per day, and one
-case takes 3 to 4 requests, so a real evaluation run needs a paid key.
+Both models are cheap "lite" models, pinned by exact id (not a `-latest` alias) so results stay
+comparable between runs. The agent runs on `gemini-3.5-flash-lite`. `gemini-3.1-flash-lite` was
+tried as the agent and looped on tool calls in every case, so it is used only as the judge.
+
+The Gemini free tier allows 5 requests per minute per model, so the agent is throttled to 4 per
+minute (`agent/models.py`). A 3-case run takes a few minutes. Remove the throttle once billing is
+enabled.
 
 ## Usage
 
@@ -102,6 +117,6 @@ uv run python test_harness.py
 # talk to the agent yourself
 uv run python agent.py
 
-# run an evaluation (once the dataset and judge model are set up), from the repo root
-uv run python evaluations/tool_correctness.py
+# run the evaluation, from the repo root
+DEEPEVAL_TELEMETRY_OPT_OUT=YES uv run python evaluations/eval_all.py
 ```
