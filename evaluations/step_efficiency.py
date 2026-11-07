@@ -4,7 +4,7 @@ from uuid import uuid4
 
 sys.path.insert(
     0,
-    str(Path(__file__).resolve().parent[1] / "agents")
+    str(Path(__file__).resolve().parents[1] / "agent")
 )
 
 from agent import agent

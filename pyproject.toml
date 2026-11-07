@@ -1,7 +1,7 @@
 [project]
 name = "ai-agent-evaluation-system"
 version = "0.1.0"
-description = "Add your description here"
+description = "Evaluates a LangChain refund agent with DeepEval: answers, tool calls, arguments, plans and steps."
 readme = "README.md"
 authors = [
     { name = "DuyBao", email = "24520146@gm.uit.edu.vn" }
@@ -14,13 +14,6 @@ dependencies = [
     "langchain-google-genai>=4.4.3",
     "pydantic>=2.14.2",
 ]
-
-[project.scripts]
-ai-agent-evaluation-system = "ai_agent_evaluation_system:main"
-
-[build-system]
-requires = ["uv_build>=0.12.11,<0.13.0"]
-build-backend = "uv_build"
 
 [dependency-groups]
 dev = [

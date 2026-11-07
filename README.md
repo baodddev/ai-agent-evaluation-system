@@ -95,7 +95,7 @@ Requires Python 3.14 and [uv](https://docs.astral.sh/uv/).
 
 ```bash
 uv sync
-cp .env.exanple .env   # then set GEMINI_API_KEY
+cp .env.example .env   # then set GEMINI_API_KEY
 ```
 
 Both models are cheap "lite" models, pinned by exact id (not a `-latest` alias) so results stay
