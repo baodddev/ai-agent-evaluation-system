@@ -47,7 +47,7 @@ def run_conversation():
 MAX_STEPS_PER_TURN = 20
 STEP_LIMIT_ANSWER = "[agent hit the step limit without answering]"
 
-def run_scripted(turns: list[str]) -> dict:
+def run_scripted(turns: list[str], callbacks: list | None = None) -> dict:
     """Run one eval case without input(): fresh thread, clean refund state.
     Returns the final agent state: "messages" (full trajectory incl. tool calls) and
     "structured_response". structured_response.conversation is still True if the turns
@@ -56,7 +56,8 @@ def run_scripted(turns: list[str]) -> dict:
     assert turns, "a case needs at least one customer message"
     refunded_items.clear()  # one case's refunds must not leak into the next
     # create_agent defaults to 9999 steps, so a looping agent burns quota forever; a normal case needs ~8
-    config = {"configurable": {"thread_id": str(uuid4())}, "recursion_limit": MAX_STEPS_PER_TURN}
+    config = {"configurable": {"thread_id": str(uuid4())}, "recursion_limit": MAX_STEPS_PER_TURN,
+              "callbacks": callbacks or []}  # e.g. DeepEval CallbackHandler to capture a trace
     for text in turns:
         try:
             response = agent.invoke({"messages": [HumanMessage(content=text)]}, config=config)

@@ -10,18 +10,22 @@ expected outcome.
 
 ## What gets evaluated
 
-| Metric | Script | Question it answers | Status |
-|---|---|---|---|
-| Answer correctness | `evaluations/answer_correctness.py` | Does the final answer reach the same conclusion as the expected answer? (GEval) | Working |
-| Tool correctness | `evaluations/tool_correctness.py` | Did the agent call the expected tools? | Working |
-| Argument correctness | `evaluations/argument_correctness.py` | Were the tools called with the right arguments? | In progress |
-| Plan quality | `evaluations/plan_quality.py` | Is the agent's plan sound for the task? | In progress |
-| Step efficiency | `evaluations/step_efficiency.py` | Did it avoid unnecessary steps? | In progress |
-| Task completion | `evaluations/task_completion.py` | Did it finish the task? | In progress |
-| Plan adherence | `evaluations/plan_adherence.py` | Did it follow its own plan? | Planned |
+| Metric | Script | Question it answers | Status | Latest score | Passed |
+|---|---|---|---|---|---|
+| Answer correctness | `evaluations/answer_correctness.py` | Does the final answer reach the same conclusion as the expected answer? (GEval) | Working | 1.00 | 3/3 |
+| Tool correctness | `evaluations/tool_correctness.py` | Did the agent call the expected tools? | Working | 1.00 | 3/3 |
+| Argument correctness | `evaluations/argument_correctness.py` | Were the tools called with the right arguments? | Working | 0.78 | 1/3 |
+| Task completion | `evaluations/task_completion.py` | Did it finish the task? | Working | 1.00 | 3/3 |
+| Step efficiency | `evaluations/step_efficiency.py` | Did it avoid unnecessary steps? | Working | 0.75 | 1/3 |
+| Plan quality | `evaluations/plan_quality.py` | Is the agent's plan sound for the task? | Working | 0.25 | 0/3 |
+| Plan adherence | `evaluations/plan_adherence.py` | Did it follow its own plan? | Working | 0.92 | 2/3 |
 
-`evaluations/eval_all.py` runs the agent **once** per test case and scores every working metric on
-that same run. Running each metric script separately re-runs the agent each time, which costs more
+Scores are from the latest `eval_all.py` run (2026-11-08), averaged over the 3 cases; a case passes at 0.8.
+The last four metrics are scored on the trace that DeepEval's `CallbackHandler` records while the
+agent runs.
+
+`evaluations/eval_all.py` runs the agent **once** per test case and scores all 7 metrics on that
+same run. Running each metric script separately re-runs the agent each time, which costs more
 and lets results drift between metrics.
 
 - **Test cases** (`evaluations/dataset.py`): the three alice / bob / carol cases below, each with an
@@ -31,10 +35,17 @@ and lets results drift between metrics.
 - **Step limit:** `run_scripted` stops a case after 20 graph steps (a normal case needs about 8).
   A looping agent then fails that case instead of hanging the run and burning quota.
 
-Latest run (2026-11-08, `eval_all.py`): 3/3 cases passed, Answer correctness 1.00, Tool correctness 1.00.
+What the failures show:
 
-Known gap: Tool correctness only checks that the expected tools were called. An agent that loops
-and calls them 10 times still scores 1.0, so that needs Step efficiency or exact-match mode.
+- **Step efficiency / Plan adherence:** for bob and carol the agent calls `get_today_date` after
+  `calculate_right_refund` has already rejected the item, an unneeded extra step. Tool correctness
+  misses this because it only checks that the expected tools were called.
+- **Argument correctness:** bob and carol score 0.67, so the judge rejected 1 of their 3 calls as
+  "missing a required parameter". The only call alice doesn't make is `get_today_date`, which takes
+  no parameters, so the judge is likely wrong here. Check the trace before changing the agent.
+- **Plan quality:** the judge grades the plan against a generic refund process (return shipping labels,
+  attempting the transaction) rather than this policy, so the low score says more about the judge
+  than the agent. Passing the policy to the judge would make it meaningful.
 
 ## The agent under test
 
