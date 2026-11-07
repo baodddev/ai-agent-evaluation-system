@@ -31,6 +31,8 @@ and lets results drift between metrics.
 - **Step limit:** `run_scripted` stops a case after 20 graph steps (a normal case needs about 8).
   A looping agent then fails that case instead of hanging the run and burning quota.
 
+Latest run (2026-11-08, `eval_all.py`): 3/3 cases passed, Answer correctness 1.00, Tool correctness 1.00.
+
 Known gap: Tool correctness only checks that the expected tools were called. An agent that loops
 and calls them 10 times still scores 1.0, so that needs Step efficiency or exact-match mode.
 
